@@ -21,7 +21,7 @@ function CreateThreadButton({ isAuthenticated }: { isAuthenticated: boolean }) {
     <button
       type="button"
       onClick={() => {
-        toast.error("You need to login or register to create a thread.", {
+        toast.error("You need to sign in first to create a question.", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

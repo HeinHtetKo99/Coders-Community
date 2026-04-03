@@ -1,5 +1,5 @@
-import ButtonLink from "@/components/ButtonLink";
 import CommonFilter from "@/components/CommonFilter";
+import CreateThreadButton from "@/components/CreateThreadButton";
 import DataRenderer from "@/components/DataRenderer";
 import Filters from "@/components/Filters";
 import Pagination from "@/components/Pagination";
@@ -7,7 +7,7 @@ import ThreadCard from "@/components/ThreadCard";
 import { DefaultFilters, HomePageFilters } from "@/constant/filters";
 import { getQuestions } from "@/lib/actions/getQuestions.action";
 import { getTags } from "@/lib/actions/getTags.action";
-import Routes from "@/routes";
+import { auth } from "@/auth";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,21 +31,24 @@ export default async function Home(searchParams: {
   const parsedPage = Number(page) || 1;
   const parsedPageSize = Number(pageSize) || 3;
 
-  const [{ data, success, message }, { data: tagsData }] = await Promise.all([
-    getQuestions({
-      page: parsedPage,
-      pageSize: parsedPageSize,
-      search: search || "",
-      filter: filter || DefaultFilters.HomePageFilters,
-    }),
-    getTags({
-      page: 1,
-      pageSize: 8,
-      filter: "popular",
-    }),
-  ]);
+  const [session, { data, success, message }, { data: tagsData }] =
+    await Promise.all([
+      auth(),
+      getQuestions({
+        page: parsedPage,
+        pageSize: parsedPageSize,
+        search: search || "",
+        filter: filter || DefaultFilters.HomePageFilters,
+      }),
+      getTags({
+        page: 1,
+        pageSize: 8,
+        filter: "popular",
+      }),
+    ]);
   const { questions = [], isNext = false } = data || {};
   const { tags = [] } = tagsData || {};
+  const isAuthenticated = !!session?.user?.id;
 
   return (
     <div className="flex flex-col gap-6 py-8 w-full max-w-full lg:max-w-200 mx-auto">
@@ -59,12 +62,7 @@ export default async function Home(searchParams: {
             filters={HomePageFilters}
             defaultFilter={DefaultFilters.HomePageFilters}
           />
-          <ButtonLink
-            href={Routes.CreateThreads}
-            className="px-4 py-2.5 h-fit text-sm font-medium w-full sm:w-auto text-center"
-          >
-            Create a New Thread
-          </ButtonLink>
+          <CreateThreadButton isAuthenticated={isAuthenticated} />
         </div>
       </div>
       {/* Filters Section */}
