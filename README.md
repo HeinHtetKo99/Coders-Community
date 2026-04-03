@@ -35,15 +35,22 @@ Coders Community allows developers to:
 - Voting system for questions and answers
 - Question view counter increment flow
 
+### Editor & Rendering
+
+- Markdown-first editor with Tiptap + `tiptap-markdown`
+- Code blocks with lowlight + highlight.js themes
+- Thread/answer rendering via `next-mdx-remote` (RSC) + `bright` for `pre` blocks
+
 ### Reputation System
 
 - Reputation is stored per user in `User.reputation`
+- Rule-driven score changes (see `lib/reputation/config.ts`)
 - Score changes are applied in action flows for:
   - question creation/deletion
   - answer creation/deletion
   - vote changes (add/switch/remove)
 - Reputation score is visible on community cards and user profile data
-- Admin rebuild endpoint exists at `/api/reputation/rebuild` (secret header protected)
+- Admin rebuild endpoint exists at `/api/reputation/rebuild` (requires `x-reputation-secret`)
 
 ### Discovery & Personalization
 
@@ -54,18 +61,20 @@ Coders Community allows developers to:
 
 ### AI + External Content
 
-- AI answer draft generation with Google model via `@ai-sdk/google`
-- Tech News feed integration with caching/revalidation
+- AI answer draft generation with Gemini via `ai` + `@ai-sdk/google`
+- Tech News feed from dev.to with caching (`force-cache`) and revalidation
 
 ## Tech Stack
 
-- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS (v4)
 - **Backend:** Next.js Server Actions + Route Handlers
 - **Database:** MongoDB + Mongoose
 - **Auth:** NextAuth v5 (Credentials, GitHub, Google)
-- **Validation:** Zod
-- **Editor/Rendering:** Tiptap + markdown rendering helpers
+- **UI:** shadcn/ui + Radix UI
+- **Validation:** Zod (v4)
+- **Editor/Rendering:** Tiptap + Markdown output, MDX Remote (RSC) rendering, bright code blocks
 - **AI:** `ai` SDK + `@ai-sdk/google`
+- **Analytics:** Vercel Speed Insights
 
 ## Project Structure
 
@@ -136,6 +145,8 @@ GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
 
 REPUTATION_REBUILD_SECRET=your_reputation_rebuild_secret
 ```
+
+Note: on Vercel, `VERCEL_URL` is available automatically and is used as a fallback base URL when `AUTH_URL` is not set.
 
 ## Getting Started
 
