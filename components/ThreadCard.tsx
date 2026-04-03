@@ -77,21 +77,21 @@ function ThreadCard({
         </Link>
 
         <div className="mt-1 flex flex-wrap gap-2 mb-7">
-          {question.tags.map((tag, i) => (
-            <Tags
-              key={i}
-              href={
-                "/filter" +
-                (typeof tag === "object" && tag !== null && "name" in tag
+          {question.tags.map((tag, i) =>
+            (() => {
+              const tagName =
+                typeof tag === "object" && tag !== null && "name" in tag
                   ? (tag as { name: string }).name
-                  : String(tag))
-              }
-            >
-              {typeof tag === "object" && tag !== null && "name" in tag
-                ? (tag as { name: string }).name
-                : String(tag)}
-            </Tags>
-          ))}
+                  : String(tag);
+              const href = `/?filter=${encodeURIComponent(tagName)}&page=1`;
+
+              return (
+                <Tags key={i} href={href}>
+                  {tagName}
+                </Tags>
+              );
+            })()
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
