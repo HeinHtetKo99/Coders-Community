@@ -67,7 +67,7 @@ export default async function Page({
   return (
     <div>
       <Suspense fallback={<UserProfileSkeleton />}>
-        <UserProfile userId={id} />
+        <UserProfile userId={id} currentUserId={currentUserId} />
       </Suspense>
 
       <div className="flex gap-4 border-b border-white/5 pb-4 mt-8">

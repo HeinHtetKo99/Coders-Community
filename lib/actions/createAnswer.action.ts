@@ -14,6 +14,8 @@ import User from "@/database/User.model";
 import { reputationRules } from "../reputation/config";
 
 const applyReputationDelta = async (userId: string, delta: number) => {
+  if (!mongoose.Types.ObjectId.isValid(userId)) return;
+
   const user = await User.findById(userId).select("reputation").lean();
   if (!user) return;
 
@@ -34,8 +36,17 @@ export async function createAnswer(params: {
   await dbConnect();
   const auth_session = await auth();
   const userId = auth_session?.user?.id;
-  const validatedData = handleValidation(params, createAnswerSchema);
+  let validatedData: { data: { questionId: string; content: string } };
+  try {
+    validatedData = handleValidation(params, createAnswerSchema) as unknown as {
+      data: { questionId: string; content: string };
+    };
+  } catch (e) {
+    return actionErrorResponse(e);
+  }
+
   const { questionId, content } = validatedData.data;
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -62,17 +73,23 @@ export async function createAnswer(params: {
       { session }
     );
     await session.commitTransaction();
-    await applyReputationDelta(
-      String(userId || ""),
-      reputationRules.answer.create
-    );
-    revalidatePath(Routes.Home);
-    revalidatePath(Routes.questions);
-    revalidatePath(Routes.question_details(questionId));
-    revalidatePath(Routes.userProfile(String(userId || "")));
+
+    const answerJson = JSON.parse(JSON.stringify(answer));
+
+    try {
+      await applyReputationDelta(
+        String(userId || ""),
+        reputationRules.answer.create
+      );
+      revalidatePath(Routes.Home);
+      revalidatePath(Routes.questions);
+      revalidatePath(Routes.question_details(questionId));
+      revalidatePath(Routes.userProfile(String(userId || "")));
+    } catch {}
+
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(answer)),
+      data: answerJson,
     };
   } catch (e) {
     await session.abortTransaction();

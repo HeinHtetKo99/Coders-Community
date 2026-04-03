@@ -4,8 +4,15 @@ import React from "react";
 import { FaMapMarkerAlt, FaLink, FaCalendarAlt } from "react-icons/fa";
 import { BsTrophy } from "react-icons/bs";
 import { getUser } from "@/lib/actions/getUser.action";
+import ProfileImageEditor from "./ProfileImageEditor";
 
-export default async function UserProfile({ userId }: { userId: string }) {
+export default async function UserProfile({
+  userId,
+  currentUserId,
+}: {
+  userId: string;
+  currentUserId?: string;
+}) {
   const { data, success } = await getUser({ userId });
   if (!data && !success) {
     return (
@@ -28,6 +35,7 @@ export default async function UserProfile({ userId }: { userId: string }) {
   const displayName = String(user?.name || "")
     .replace(/https?:\/\/[^\s]+/g, "")
     .trim();
+  const canEdit = String(currentUserId || "") === String(userId || "");
 
   return (
     <div className="flex flex-col gap-6 py-8 w-full max-w-full lg:max-w-4xl mx-auto">
@@ -35,14 +43,16 @@ export default async function UserProfile({ userId }: { userId: string }) {
       <div className="bg-primary/40 rounded-2xl border border-white/5 overflow-hidden">
         <div className="h-32 sm:h-48 w-full bg-linear-to-r from-main/40 to-main/10 relative">
           <div className="absolute -bottom-12 sm:-bottom-16 left-6 sm:left-10">
-            <div className="rounded-full p-1.5 bg-secondary border-2 border-main/20">
+            <div className="relative rounded-full p-1.5 bg-secondary border-2 border-main/20">
               <Image
                 src={user?.image || "/profile.jpg"}
                 alt={user?.name || ""}
                 width={120}
                 height={120}
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover"
+                unoptimized={String(user?.image || "").startsWith("data:")}
               />
+              {canEdit && <ProfileImageEditor currentImage={user?.image} />}
             </div>
           </div>
         </div>

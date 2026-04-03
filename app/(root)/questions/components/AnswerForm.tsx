@@ -4,7 +4,7 @@ import TextEditor from "@/components/TextEditor";
 import { createAnswer } from "@/lib/actions/createAnswer.action";
 import generateAiAnswerAction from "@/lib/actions/generateAiAnswerAction.action";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { startTransition, useState } from "react";
 import { Bounce, toast } from "react-toastify";
 
 function AnswerForm({
@@ -22,10 +22,40 @@ function AnswerForm({
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      const { data, success } = await createAnswer({
+      if (!content.trim()) {
+        toast.error("Content is required", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
+        return;
+      }
+
+      const { data, success, message } = await createAnswer({
         questionId: questionId,
         content,
       });
+      if (!success) {
+        toast.error(message || "Internal server error", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
+        return;
+      }
+
       setContent("");
       if (data && success) {
         toast.success("Answer created successfully", {
@@ -38,14 +68,12 @@ function AnswerForm({
           theme: "colored",
           transition: Bounce,
         });
-        router.refresh();
+        startTransition(() => {
+          router.refresh();
+        });
       }
     } catch (e: any) {
-      const message = e?.message?.includes("digest")
-        ? "Content is required"
-        : e?.message || "Internal server error";
-
-      toast.error(message, {
+      toast.error(e?.message || "Internal server error", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -73,11 +101,7 @@ function AnswerForm({
       }
       setLoading(false);
     } catch (e: any) {
-      const message = e?.message?.includes("digest")
-        ? "Content is required"
-        : e?.message || "Internal server error";
-
-      toast.error(message, {
+      toast.error(e?.message || "Internal server error", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
