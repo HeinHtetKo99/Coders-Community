@@ -4,7 +4,7 @@ A production-style full-stack developer Q&A platform built with Next.js App Rout
 
 ## Live Demo
 
-- **Production URL:** https://coders-community-lemon.vercel.app/
+- **Production URL:** https://coderscommunity-eight.vercel.app/
 
 ## Overview
 
@@ -157,7 +157,7 @@ Open `http://localhost:3000`.
 
 The app is deployed on Vercel:
 
-- https://coders-community-lemon.vercel.app/
+- https://coderscommunity-eight.vercel.app/
 
 To deploy your own copy:
 
