@@ -13,6 +13,7 @@ import User from "@/database/User.model";
 import { revalidatePath } from "next/cache";
 import Routes from "@/routes";
 import { reputationRules } from "../reputation/config";
+import { revalidateCacheTags } from "../cache";
 
 const applyReputationDelta = async (userId: string, delta: number) => {
   const user = await User.findById(userId).select("reputation").lean();
@@ -116,6 +117,11 @@ export async function questionCreate(params: {
     for (const tagId of tagIds) {
       revalidatePath(`/tags/${String(tagId)}`);
     }
+    revalidateCacheTags([
+      "questions:list",
+      "tags:list",
+      `question:${questionId}`,
+    ]);
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (e) {

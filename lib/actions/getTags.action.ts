@@ -7,6 +7,7 @@ import { paginatedSearchSchema } from "../schemas/paginatedSearchSchema";
 import { QueryFilter } from "mongoose";
 import { actionErrorResponse } from "../response";
 import Tags, { ItagsDoc } from "@/database/Tag.model";
+import { unstable_cache } from "next/cache";
 export async function getTags(params: {
   page?: number;
   pageSize?: number;
@@ -56,12 +57,27 @@ export async function getTags(params: {
   }
 
   try {
-    const tags = await Tags.find(filterQuery)
-      .select("name questions createdAt")
-      .lean()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(pageLimit);
+    const isCacheableListQuery =
+      !search && (!filter || filter === "popular" || filter === "newest");
+
+    const loadTags = async () =>
+      Tags.find(filterQuery)
+        .select("name questions createdAt")
+        .lean()
+        .sort(sortCriteria)
+        .skip(skip)
+        .limit(pageLimit);
+
+    const tags = isCacheableListQuery
+      ? await unstable_cache(
+          loadTags,
+          ["tags:list", String(filter || "default"), String(page), String(pageSize)],
+          {
+            revalidate: 600,
+            tags: ["tags:list", `tags:list:${String(filter || "default")}`],
+          }
+        )()
+      : await loadTags();
     const isNext = tags.length > limit;
     const paginatedTags = isNext ? tags.slice(0, limit) : tags;
     return {

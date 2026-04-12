@@ -3,10 +3,14 @@ import Credentials from "next-auth/providers/credentials";
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import mongoose from "mongoose";
+import slugify from "slugify";
 
-import { api } from "./lib/api";
 import { handleValidation } from "./lib/handleValidation";
 import { signInWithCredentialsSchema } from "./lib/schemas/signInWithCredentailsSchema";
+import dbConnect from "@/lib/dbConnect";
+import Account from "@/database/Account.model";
+import User from "@/database/User.model";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -20,22 +24,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
         if (validationFields.success) {
           const { email, password } = validationFields.data;
-          const { data: existingAccount } =
-            await api.accounts.getByProviderAccountId(email);
+          await dbConnect();
+          const existingAccount = await Account.findOne({
+            provider: "credentials",
+            providerAccountId: email,
+          })
+            .select("userId password")
+            .lean();
           if (!existingAccount) return null;
 
-          const { data: existingUser } = await api.users.getById(
-            existingAccount.userId.toString()
-          );
+          const existingUser = await User.findById(existingAccount.userId)
+            .select("name username email image")
+            .lean();
           if (!existingUser) return null;
 
           const isValidPassword = await bcrypt.compare(
             password,
-            existingAccount.password
+            String(existingAccount.password || "")
           );
           if (isValidPassword) {
-            const userId = (existingUser._id?.toString?.() ||
-              existingUser.id) as string;
+            const userId = String(existingUser._id);
             return {
               id: userId,
               name: existingUser.name,
@@ -53,6 +61,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, profile, account }) {
       if (account?.type === "credentials") return true;
       if (!account || !user) return false;
+
+      await dbConnect();
+      const session = await mongoose.startSession();
+      session.startTransaction();
 
       const profileRecord =
         profile && typeof profile === "object"
@@ -79,17 +91,61 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         String(user.image || profileRecord.avatar_url || "").trim() ||
         "https://avatars.githubusercontent.com/u/0?v=4";
 
-      const { success } = await api.auth.signInWithOauth({
-        user: {
-          email,
-          name,
-          image,
-          username,
-        },
-        provider: account.provider,
-        providerAccountId: account.providerAccountId,
-      });
-      return success;
+      try {
+        const safeUsername =
+          slugify(username, {
+            lower: true,
+            trim: true,
+            strict: true,
+          }) || `user-${String(account.providerAccountId).slice(0, 12)}`;
+
+        let existingUser = await User.findOne({ email }).session(session);
+        if (!existingUser) {
+          [existingUser] = await User.create(
+            [
+              {
+                email,
+                name,
+                image,
+                username: safeUsername,
+              },
+            ],
+            { session }
+          );
+        } else {
+          await User.updateOne(
+            { _id: existingUser._id },
+            { $set: { name, image } }
+          ).session(session);
+        }
+
+        const existingAccount = await Account.findOne({
+          userId: existingUser._id,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+        }).session(session);
+        if (!existingAccount) {
+          await Account.create(
+            [
+              {
+                userId: existingUser._id,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                name,
+                image,
+              },
+            ],
+            { session }
+          );
+        }
+        await session.commitTransaction();
+        return true;
+      } catch {
+        await session.abortTransaction();
+        return false;
+      } finally {
+        await session.endSession();
+      }
     },
     async jwt({ token, account, user }) {
       if (account?.type === "credentials" && user?.id) {
@@ -98,14 +154,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (account) {
-        const { success, data: accountData } =
-          await api.accounts.getByProviderAccountId(account?.providerAccountId);
-
-        if (!success || !accountData) return token;
-
-        const userId = accountData?.userId;
-
-        if (userId) token.sub = userId;
+        await dbConnect();
+        const existingAccount = await Account.findOne({
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+        })
+          .select("userId")
+          .lean();
+        if (existingAccount?.userId) {
+          token.sub = String(existingAccount.userId);
+        }
       }
       return token;
     },

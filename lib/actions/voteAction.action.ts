@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import Routes from "@/routes";
 import User from "@/database/User.model";
 import { reputationRules } from "../reputation/config";
+import { revalidateCacheTags } from "../cache";
 
 const applyReputationDelta = async (userId: string, delta: number) => {
   const user = await User.findById(userId).select("reputation").lean();
@@ -111,6 +112,7 @@ export async function voteAction(params: {
       revalidatePath(Routes.questions);
       revalidatePath(Routes.question_details(typeId));
     }
+    revalidateCacheTags(["questions:list", `question:${typeId}`]);
 
     return {
       success: true,

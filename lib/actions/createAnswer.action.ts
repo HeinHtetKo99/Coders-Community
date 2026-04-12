@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import Routes from "@/routes";
 import User from "@/database/User.model";
 import { reputationRules } from "../reputation/config";
+import { revalidateCacheTags } from "../cache";
 
 const applyReputationDelta = async (userId: string, delta: number) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) return;
@@ -85,6 +86,7 @@ export async function createAnswer(params: {
       revalidatePath(Routes.questions);
       revalidatePath(Routes.question_details(questionId));
       revalidatePath(Routes.userProfile(String(userId || "")));
+      revalidateCacheTags(["questions:list", `question:${questionId}`]);
     } catch {}
 
     return {

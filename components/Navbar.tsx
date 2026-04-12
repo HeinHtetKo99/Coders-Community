@@ -2,20 +2,9 @@ import logo from "../public/logo.jpg";
 import Image from "next/image";
 import profile from "../public/profile.jpg";
 import SearchInput from "./SearchInput";
-import { auth } from "@/auth";
 import Link from "next/link";
-import { getUserNavData } from "@/lib/actions/getUser.action";
 
-async function Navbar() {
-  const session = await auth();
-  const user = session?.user;
-  const navbarUserId = String(user?.id || "");
-  const { data: navbarUserData } = navbarUserId
-    ? await getUserNavData({ userId: navbarUserId })
-    : { data: undefined };
-  const avatarSrc = navbarUserData?.image || user?.image || profile;
-  const isDataUrl =
-    typeof avatarSrc === "string" && avatarSrc.startsWith("data:");
+function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full bg-secondary/80 backdrop-blur-md border-b border-white/5">
       <div className="flex justify-between py-3 px-4 sm:py-5 sm:px-10 items-center max-w-375 mx-auto w-full gap-3 sm:gap-4">
@@ -34,21 +23,10 @@ async function Navbar() {
 
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <Link
-            href={!user ? "/login" : `/profile/${user.id}`}
+            href="/login"
             className="relative h-10 w-10 rounded-full overflow-hidden border border-white/10 hover:border-main transition-all cursor-pointer"
           >
-            {!user ? (
-              <Image src={profile} alt="profile" className="object-cover" />
-            ) : (
-              <Image
-                src={avatarSrc}
-                alt="profile"
-                className="object-cover"
-                width={50}
-                height={50}
-                unoptimized={isDataUrl}
-              />
-            )}
+            <Image src={profile} alt="profile" className="object-cover" />
           </Link>
         </div>
       </div>
