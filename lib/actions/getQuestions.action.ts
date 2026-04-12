@@ -8,7 +8,6 @@ import { handleValidation } from "../handleValidation";
 import { paginatedSearchSchema } from "../schemas/paginatedSearchSchema";
 import { QueryFilter } from "mongoose";
 import { actionErrorResponse } from "../response";
-import { unstable_cache } from "next/cache";
 export async function getQuestions(params: {
   page?: number;
   pageSize?: number;
@@ -96,37 +95,14 @@ export async function getQuestions(params: {
       }
     }
 
-    const isCacheableListQuery =
-      !search && (!filter || recognizedSortFilters.includes(filter));
-
-    const loadQuestions = async () =>
-      Question.find(filterQuery)
-        .select("title tags views upvotes answers author createdAt")
-        .populate("tags", "name")
-        .populate("author", "name image")
-        .lean()
-        .sort(sortCriteria)
-        .skip(skip)
-        .limit(pageLimit);
-
-    const questions = isCacheableListQuery
-      ? await unstable_cache(
-          loadQuestions,
-          [
-            "questions:list",
-            String(filter || "default"),
-            String(page),
-            String(pageSize),
-          ],
-          {
-            revalidate: 60,
-            tags: [
-              "questions:list",
-              `questions:list:${String(filter || "default")}`,
-            ],
-          }
-        )()
-      : await loadQuestions();
+    const questions = await Question.find(filterQuery)
+      .select("title tags views upvotes answers author createdAt")
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .lean()
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(pageLimit);
     const isNext = questions.length > limit;
     const paginatedQuestions = isNext ? questions.slice(0, limit) : questions;
     return {
