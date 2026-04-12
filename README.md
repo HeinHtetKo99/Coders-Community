@@ -4,7 +4,7 @@ A production-style full-stack developer Q&A platform built with Next.js App Rout
 
 ## Live Demo
 
-- **Production URL:** https://coders-community-dun.vercel.app
+- **Production URL:** https://coderscommunity-eight.vercel.app/
 
 ## Overview
 

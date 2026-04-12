@@ -117,11 +117,7 @@ export async function questionCreate(params: {
     for (const tagId of tagIds) {
       revalidatePath(`/tags/${String(tagId)}`);
     }
-    revalidateCacheTags([
-      "questions:list",
-      "tags:list",
-      `question:${questionId}`,
-    ]);
+    revalidateCacheTags(["questions:list", "tags:list", `question:${questionId}`]);
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (e) {
