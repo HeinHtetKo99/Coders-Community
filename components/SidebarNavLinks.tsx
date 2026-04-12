@@ -61,9 +61,13 @@ const navItems: NavItem[] = [
   },
 ];
 
-function SidebarNavLinks() {
+function SidebarNavLinks({ isAuthenticated }: { isAuthenticated: boolean }) {
   const pathname = usePathname();
-  return navItems.map((item) => {
+  const visibleNavItems = navItems.filter(
+    (item) => !item.protected || isAuthenticated
+  );
+
+  return visibleNavItems.map((item) => {
     const Icon = item.icon;
     const active = item.isActive(pathname);
 

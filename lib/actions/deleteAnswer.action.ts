@@ -12,7 +12,6 @@ import { auth } from "@/auth";
 import Routes from "@/routes";
 import User from "@/database/User.model";
 import { reputationRules } from "../reputation/config";
-import { revalidateCacheTags } from "../cache";
 
 const applyReputationDelta = async (userId: string, delta: number) => {
   const user = await User.findById(userId).select("reputation").lean();
@@ -55,10 +54,6 @@ export async function deleteAnswerAction(params: {
     revalidatePath(Routes.questions);
     revalidatePath(Routes.question_details(String(answer.question)));
     revalidatePath(Routes.userProfile(userId as string));
-    revalidateCacheTags([
-      "questions:list",
-      `question:${String(answer.question)}`,
-    ]);
     return { success: true };
   } catch (e) {
     return actionErrorResponse(e);

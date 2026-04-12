@@ -16,7 +16,6 @@ import { revalidatePath } from "next/cache";
 import Routes from "@/routes";
 import User from "@/database/User.model";
 import { reputationRules } from "../reputation/config";
-import { revalidateCacheTags } from "../cache";
 
 const applyReputationDeltas = async (deltasByUserId: Map<string, number>) => {
   const userIds = Array.from(deltasByUserId.keys());
@@ -120,11 +119,6 @@ export async function deleteQuestionAction(params: {
     for (const tagId of questionTagIds) {
       revalidatePath(`/tags/${tagId}`);
     }
-    revalidateCacheTags([
-      "questions:list",
-      "tags:list",
-      `question:${questionId}`,
-    ]);
     return { success: true };
   } catch (e) {
     await session.abortTransaction();
