@@ -6,7 +6,7 @@ import { IoIosSearch, IoIosClose } from "react-icons/io";
 import qs from "query-string";
 import { useDebounce } from "use-debounce";
 
-function SearchInputContent() {
+function SearchInputContent({ compact = false }: { compact?: boolean }) {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const [searchValue, setSearchValue] = useState(
@@ -64,36 +64,45 @@ function SearchInputContent() {
 
   return (
     <div className="relative w-full max-w-2xl group">
-      {/* Search Icon */}
-      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none transition-colors group-focus-within:text-main text-gray-400">
-        <IoIosSearch className="text-xl" />
+      <div
+        className={`absolute inset-y-0 left-3 flex items-center pointer-events-none transition-colors group-focus-within:text-main text-gray-400 sm:left-4 ${
+          compact ? "left-3" : ""
+        }`}
+      >
+        <IoIosSearch className={compact ? "text-lg" : "text-xl"} />
       </div>
 
-      {/* Input Field */}
       <input
         ref={inputRef}
         type="text"
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Search everything..."
-        className="w-full bg-secondary/50 border border-white/5 text-white rounded-xl py-3 pl-12 pr-16 focus:outline-none focus:border-main/50 focus:bg-secondary transition-all placeholder:text-gray-500"
+        placeholder={compact ? "Search..." : "Search questions, tags, users..."}
+        className={`w-full border border-white/10 bg-primary/40 text-white transition-all placeholder:text-gray-500 focus:border-main/50 focus:bg-primary/60 focus:outline-none ${
+          compact
+            ? "rounded-lg py-2.5 pl-10 pr-10 text-sm"
+            : "rounded-xl py-3 pl-12 pr-16"
+        }`}
       />
 
-      {/* Action Buttons (Clear & Shortcut Hint) */}
-      <div className="absolute inset-y-0 right-4 flex items-center gap-2">
+      <div
+        className={`absolute inset-y-0 right-3 flex items-center gap-2 sm:right-4 ${
+          compact ? "right-3" : ""
+        }`}
+      >
         {searchValue && (
           <button
             onClick={handleClear}
-            className="p-1 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
             title="Clear search"
           >
-            <IoIosClose className="text-2xl" />
+            <IoIosClose className={compact ? "text-xl" : "text-2xl"} />
           </button>
         )}
 
-        {!searchValue && (
-          <div className="hidden sm:flex items-center px-2 py-0.5 border border-gray-600 rounded text-[10px] text-gray-500 font-mono bg-secondary/50 pointer-events-none">
+        {!searchValue && !compact && (
+          <div className="pointer-events-none hidden items-center rounded border border-gray-600 bg-secondary/50 px-2 py-0.5 font-mono text-[10px] text-gray-500 sm:flex">
             /
           </div>
         )}
@@ -103,14 +112,18 @@ function SearchInputContent() {
 }
 
 // Wrap with Suspense to prevent Next.js build-time/runtime errors when using useSearchParams in layouts
-function SearchInput() {
+function SearchInput({ compact = false }: { compact?: boolean }) {
   return (
     <Suspense
       fallback={
-        <div className="w-full h-10 bg-primary rounded-full animate-pulse" />
+        <div
+          className={`w-full animate-pulse bg-primary/50 ${
+            compact ? "h-10 rounded-lg" : "h-12 rounded-xl"
+          }`}
+        />
       }
     >
-      <SearchInputContent />
+      <SearchInputContent compact={compact} />
     </Suspense>
   );
 }
