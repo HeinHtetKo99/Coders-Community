@@ -3,20 +3,18 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { IoIosSearch, IoIosClose } from "react-icons/io";
-import qs from "query-string";
 import { useDebounce } from "use-debounce";
 
 function SearchInputContent({ compact = false }: { compact?: boolean }) {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const [searchValue, setSearchValue] = useState(
-    searchParams.get("search") || ""
+    () => searchParams.get("search") || ""
   );
-  // useDebounce returns [use-debounce package]
   const [debouncedValue] = useDebounce(searchValue, 300);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingUrlSearch = useRef<string | null>(null);
 
-  // Focus input on shortcut key (e.g., '/')
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "/" && document.activeElement !== inputRef.current) {
@@ -29,27 +27,39 @@ function SearchInputContent({ compact = false }: { compact?: boolean }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // For the search value to be updated in the URL
   useEffect(() => {
-    const currentParams = qs.parse(searchParams.toString());
-    const currentSearch = currentParams.search || "";
+    const urlSearch = searchParams.get("search") || "";
+
+    if (pendingUrlSearch.current === urlSearch) {
+      pendingUrlSearch.current = null;
+      return;
+    }
+
+    setSearchValue((current) => (current === urlSearch ? current : urlSearch));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const currentSearch = params.get("search") || "";
 
     if (currentSearch === debouncedValue) return;
-    const newParams = {
-      ...currentParams,
-      search: debouncedValue || undefined,
-    };
 
-    const url = qs.stringifyUrl(
-      {
-        url: window.location.pathname,
-        query: newParams,
-      },
-      { skipNull: true, skipEmptyString: true }
-    );
+    if (debouncedValue) {
+      params.set("search", debouncedValue);
+    } else {
+      params.delete("search");
+    }
 
-    replace(url);
-  }, [debouncedValue, searchParams, replace]);
+    params.delete("page");
+
+    const query = params.toString();
+    const nextUrl = query
+      ? `${window.location.pathname}?${query}`
+      : window.location.pathname;
+
+    pendingUrlSearch.current = debouncedValue;
+    replace(nextUrl, { scroll: false });
+  }, [debouncedValue, replace]);
 
   const handleClear = () => {
     setSearchValue("");
@@ -111,7 +121,6 @@ function SearchInputContent({ compact = false }: { compact?: boolean }) {
   );
 }
 
-// Wrap with Suspense to prevent Next.js build-time/runtime errors when using useSearchParams in layouts
 function SearchInput({ compact = false }: { compact?: boolean }) {
   return (
     <Suspense

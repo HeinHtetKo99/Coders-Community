@@ -9,7 +9,7 @@ function layout({ children }: { children: React.ReactNode }) {
     <>
       <Navbar />
       <div className="flex flex-col xl:flex-row min-h-[calc(100vh-5rem)] max-w-375 mx-auto gap-4 md:gap-8 xl:gap-12 px-4 sm:px-6 xl:px-10">
-        <aside className="sticky top-14 z-40 w-[calc(100%+2rem)] shrink-0 -mx-4 border-b border-white/10 bg-secondary/95 px-4 py-2 backdrop-blur-xl supports-[backdrop-filter]:bg-secondary/80 sm:top-16 sm:w-[calc(100%+3rem)] sm:-mx-6 sm:px-6 xl:top-20 xl:mx-0 xl:h-[calc(100vh-5rem)] xl:w-70 xl:overflow-y-auto xl:border-none xl:bg-transparent xl:px-0 xl:py-8 xl:backdrop-blur-none hide-scrollbar">
+        <aside className="sticky top-14 z-40 w-[calc(100%+2rem)] shrink-0 -mx-4 border-b border-white/10 bg-secondary/95 px-3 py-1 backdrop-blur-xl supports-[backdrop-filter]:bg-secondary/80 sm:top-16 sm:w-[calc(100%+3rem)] sm:-mx-6 sm:px-4 xl:top-20 xl:mx-0 xl:h-[calc(100vh-5rem)] xl:w-70 xl:overflow-y-auto xl:border-none xl:bg-transparent xl:px-0 xl:py-8 xl:backdrop-blur-none hide-scrollbar">
           <LeftSidebar />
         </aside>
 

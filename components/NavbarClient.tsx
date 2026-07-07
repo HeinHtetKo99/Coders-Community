@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IoIosSearch, IoIosClose } from "react-icons/io";
@@ -10,7 +10,6 @@ import logo from "../public/logo.jpg";
 import profile from "../public/profile.jpg";
 import SearchInput from "./SearchInput";
 import Routes from "@/routes";
-import { cn } from "@/lib/utils";
 
 type NavbarUser = {
   id: string;
@@ -24,8 +23,23 @@ type NavbarClientProps = {
   isDataUrl: boolean;
 };
 
+function subscribeToDesktopMedia(callback: () => void) {
+  const mediaQuery = window.matchMedia("(min-width: 768px)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getDesktopMediaSnapshot() {
+  return window.matchMedia("(min-width: 768px)").matches;
+}
+
 function NavbarClient({ user, isDataUrl }: NavbarClientProps) {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktopMedia,
+    getDesktopMediaSnapshot,
+    () => false
+  );
   const displayName = user?.name || user?.username || "Profile";
 
   return (
@@ -48,9 +62,11 @@ function NavbarClient({ user, isDataUrl }: NavbarClientProps) {
           </div>
         </Link>
 
-        <div className="hidden min-w-0 flex-1 md:block">
-          <SearchInput />
-        </div>
+        {isDesktop ? (
+          <div className="min-w-0 flex-1">
+            <SearchInput />
+          </div>
+        ) : null}
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           <button
@@ -111,16 +127,11 @@ function NavbarClient({ user, isDataUrl }: NavbarClientProps) {
         </div>
       </div>
 
-      <div
-        className={cn(
-          "overflow-hidden border-t border-white/5 bg-secondary/95 transition-[max-height,opacity,padding] duration-300 md:hidden",
-          isMobileSearchOpen
-            ? "max-h-24 px-3 py-3 opacity-100"
-            : "max-h-0 px-3 py-0 opacity-0"
-        )}
-      >
-        <SearchInput compact />
-      </div>
+      {!isDesktop && isMobileSearchOpen ? (
+        <div className="border-t border-white/5 bg-secondary/95 px-3 py-3 md:hidden">
+          <SearchInput compact />
+        </div>
+      ) : null}
     </header>
   );
 }
