@@ -9,6 +9,7 @@ import { FiLogIn } from "react-icons/fi";
 import logo from "../public/logo.jpg";
 import profile from "../public/profile.jpg";
 import SearchInput from "./SearchInput";
+import LogoutButton from "./LogoutButton";
 import Routes from "@/routes";
 
 type NavbarUser = {
@@ -84,13 +85,22 @@ function NavbarClient({ user, isDataUrl }: NavbarClientProps) {
           </button>
 
           {user ? (
-            <Link
-              href={Routes.CreateThreads}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-main px-3 text-sm font-semibold text-white shadow-lg shadow-main/20 transition-colors hover:bg-main/90 sm:px-4"
-            >
-              <HiOutlinePlus className="text-lg sm:hidden" />
-              <span className="hidden sm:inline">Ask Question</span>
-            </Link>
+            <>
+              <Link
+                href={Routes.CreateThreads}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-main px-3 text-sm font-semibold text-white shadow-lg shadow-main/20 transition-colors hover:bg-main/90 sm:px-4"
+              >
+                <HiOutlinePlus className="text-lg sm:hidden" />
+                <span className="hidden sm:inline">Ask Question</span>
+              </Link>
+
+              <LogoutButton
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 text-sm font-semibold text-red-400 transition-all hover:bg-red-500 hover:text-white sm:px-4"
+                iconClassName="text-base sm:text-lg"
+                showLabel
+                labelClassName="hidden sm:inline"
+              />
+            </>
           ) : (
             <Link
               href={Routes.Login}

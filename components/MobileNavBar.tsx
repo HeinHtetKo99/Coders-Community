@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FiLogIn } from "react-icons/fi";
 import { navItems } from "@/constant/navItems";
+import Routes from "@/routes";
+import LogoutButton from "./LogoutButton";
 import { cn } from "@/lib/utils";
 
 function MobileNavBar({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -10,13 +13,14 @@ function MobileNavBar({ isAuthenticated }: { isAuthenticated: boolean }) {
   const visibleNavItems = navItems.filter(
     (item) => !item.protected || isAuthenticated
   );
+  const columnCount = visibleNavItems.length + 1;
 
   return (
     <nav
       aria-label="Main navigation"
       className="grid w-full gap-1"
       style={{
-        gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
       }}
     >
       {visibleNavItems.map((item) => {
@@ -49,6 +53,27 @@ function MobileNavBar({ isAuthenticated }: { isAuthenticated: boolean }) {
           </Link>
         );
       })}
+
+      {isAuthenticated ? (
+        <div className="flex flex-col items-center justify-center py-1.5">
+          <LogoutButton
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 transition-all hover:bg-red-500 hover:text-white"
+            iconClassName="text-[1.15rem]"
+          />
+        </div>
+      ) : (
+        <Link
+          href={Routes.Login}
+          title="Login"
+          aria-label="Login"
+          className="group flex flex-col items-center justify-center py-1.5"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-main/25 bg-main/10 text-main transition-all group-hover:bg-main group-hover:text-white">
+            <FiLogIn className="text-[1.15rem]" />
+          </span>
+          <span className="sr-only">Login</span>
+        </Link>
+      )}
     </nav>
   );
 }
