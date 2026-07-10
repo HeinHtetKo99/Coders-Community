@@ -1,14 +1,17 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 function Input({
   placeholder,
   label,
   type,
+  className,
   ...props
 }: {
   type?: string;
   placeholder?: string;
   label?: string;
+  className?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <>
@@ -17,7 +20,10 @@ function Input({
         {...props}
         type={type}
         placeholder={placeholder}
-        className="border-primary border px-4 py-2 w-full rounded-lg"
+        className={cn(
+          "w-full rounded-xl border border-white/10 px-4 py-2.5 text-white outline-none transition-colors focus:border-main/50 focus:ring-1 focus:ring-main/30",
+          className
+        )}
       />
     </>
   );

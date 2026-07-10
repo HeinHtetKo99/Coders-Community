@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import ToastAlert from "@/components/ToastAlert";
+import FirstVisitRedirect from "@/components/FirstVisitRedirect";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,10 @@ export default async function RootLayout({
       <body
         className={`text-white bg-secondary ${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          <FirstVisitRedirect />
+          {children}
+        </SessionProvider>
         <ToastAlert />
       </body>
     </html>
